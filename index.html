@@ -141,6 +141,26 @@
     background: #ffffff;
   }
 
+  /* ════════════════════════════════════════
+     Mobile breakpoint — scale the 420px iPhone mockup down
+     so it fits in narrow viewports without horizontal overflow.
+     Uses CSS `zoom` (widely supported in WebKit/Blink/Firefox 126+)
+     so both visual rendering AND layout flow shrink together.
+     ════════════════════════════════════════ */
+  @media (max-width: 520px) {
+    html, body { overflow-x: hidden; }
+    body { padding: 40px 16px 72px; }
+    .page-head { margin-bottom: 40px; }
+    .page-head h1 { font-size: 24px; line-height: 30px; }
+    .page-head p  { font-size: 14px; line-height: 22px; }
+    .page-head .meta { font-size: 10px; }
+    .gallery { gap: 48px 24px; }
+    .variant { zoom: 0.78; }
+  }
+  @media (max-width: 380px) {
+    .variant { zoom: 0.70; }
+  }
+
   /* Dynamic Island */
   .di {
     position: absolute;
