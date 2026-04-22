@@ -1,0 +1,15 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor / IDE
+.vscode/
+
+# Claude Code per-project config (local-only)
+.claude/settings.local.json
+
+# Logs
+*.log
+
+# Node (just in case)
+node_modules/
