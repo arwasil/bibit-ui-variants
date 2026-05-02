@@ -7,9 +7,28 @@ DST="/Users/wasil/Bibit UI/showcase.html"
 declare -a LETTERS=(A B C D E F G)
 declare -a TITLES=("Original · Clean" "Ambient · Fern Fronds" "Dark Skeuomorphism" "Ambient · Night Hill" "Data Terminal" "Expressive · Bento" "Skeumorphic Notepad")
 
-# iphone__screen line ranges (start to end inclusive)
-declare -a STARTS=(2648 2802 3019 3218 3435 3638 3848)
-declare -a ENDS=(2786 3003 3202 3419 3621 3832 3964)
+# Auto-detect the CSS block range (last line of <style> ... </style>) so
+# this script keeps working when index.html grows.
+CSS_END=$(($(grep -n '^</style>' "$SRC" | head -1 | cut -d: -f1) - 1))
+
+# Auto-detect each variant's iphone__screen start line + matching close
+# (close = enclosing </section> minus 2 lines, per the source's structure
+# of `<div class="iphone__screen">…</div></div></section>`).
+declare -a STARTS=()
+declare -a ENDS=()
+while IFS=' ' read -r s e; do
+  STARTS+=("$s")
+  ENDS+=("$e")
+done < <(awk '
+  /<section class="variant">/ { in_v = 1; next }
+  /<div class="iphone__screen/ && in_v { start = NR }
+  /^    <\/section>/ && in_v { printf("%d %d\n", start, NR - 2); in_v = 0 }
+' "$SRC")
+
+if [ "${#STARTS[@]}" -ne "${#LETTERS[@]}" ]; then
+  echo "ERROR: detected ${#STARTS[@]} variants but expected ${#LETTERS[@]}" >&2
+  exit 1
+fi
 
 # Header & CSS-from-source
 {
@@ -29,8 +48,8 @@ cat <<'HEAD'
 <style>
 HEAD
 
-# Pull the CSS from source (skip the opening <style> on line 10 and the closing </style> on line 2625)
-sed -n '11,2624p' "$SRC"
+# Pull the CSS from source (lines after `<style>` up to before `</style>`)
+sed -n "11,${CSS_END}p" "$SRC"
 
 cat <<'SHOWCASE_CSS'
 
