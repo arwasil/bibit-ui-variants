@@ -65,38 +65,6 @@
     color: #555;
     letter-spacing: 0.05em;
   }
-  .page-head__cta {
-    display: inline-flex;
-    align-items: center;
-    gap: 9px;
-    margin-top: 20px;
-    padding: 10px 16px 10px 14px;
-    background: #16161a;
-    border: 1px solid #2a2a2e;
-    border-radius: 999px;
-    color: #f4f4f4;
-    font-family: "Inter", sans-serif;
-    font-size: 13.5px;
-    font-weight: 500;
-    line-height: 18px;
-    letter-spacing: -0.005em;
-    text-decoration: none;
-    transition: background 160ms ease, border-color 160ms ease, transform 160ms ease;
-  }
-  .page-head__cta:hover {
-    background: #1f1f24;
-    border-color: #3a3a40;
-  }
-  .page-head__cta:active { transform: translateY(1px); }
-  .page-head__cta svg { color: #82b7ff; flex-shrink: 0; }
-  .page-head__cta .arrow {
-    color: #6c6c70;
-    transition: transform 160ms ease, color 160ms ease;
-  }
-  .page-head__cta:hover .arrow {
-    color: #d0d0d3;
-    transform: translateX(2px);
-  }
   .gallery {
     display: flex;
     flex-direction: row;
@@ -2625,6 +2593,38 @@
     background: rgba(140,90,60,0.45);
     border-radius: 1px;
     box-shadow: 0 1px 1px rgba(0,0,0,0.2);
+  }
+
+  /* Bottom dark tabbar (Evernote-inspired) */
+  .notepad__tabbar {
+    position: absolute;
+    left: 14px; right: 14px; bottom: 28px;
+    display: flex; align-items: center;
+    padding: 5px;
+    background: linear-gradient(180deg, #2f2620 0%, #15100a 100%);
+    border-radius: 12px;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.08),
+      inset 0 -1px 0 rgba(0,0,0,0.55),
+      0 2px 4px rgba(0,0,0,0.4),
+      0 10px 24px rgba(0,0,0,0.55);
+    z-index: 5;
+  }
+  .notepad__tab {
+    flex: 1;
+    display: flex; align-items: center; justify-content: center;
+    height: 42px; border-radius: 8px;
+    color: rgba(245,225,180,0.55);
+  }
+  .notepad__tab--primary {
+    background: linear-gradient(180deg, #8fc770 0%, #4c8a38 100%);
+    color: #1a2e10;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.38),
+      inset 0 -1px 0 rgba(0,0,0,0.22),
+      0 2px 5px rgba(76,138,56,0.42);
+  }
+
 
 /* ════════════════════════════════════════
    SHOWCASE — full-bleed swipe deck
@@ -2687,6 +2687,76 @@ body {
   overflow: hidden;
 }
 
+/* HUD: chip in top corner showing current variant — sits above the
+   mockup status bar so the badge is always findable during demo. */
+.hud {
+  position: fixed;
+  top: max(env(safe-area-inset-top, 0px), 14px);
+  left: 14px;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px 6px 6px;
+  background: rgba(20, 20, 22, 0.72);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 999px;
+  color: #f4f4f4;
+  font-family: "Inter", sans-serif;
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: -0.005em;
+  pointer-events: none;
+  opacity: 0.92;
+  transition: opacity 240ms ease;
+}
+.hud--hidden { opacity: 0; }
+.hud__badge {
+  display: flex; align-items: center; justify-content: center;
+  width: 22px; height: 22px; border-radius: 6px;
+  background: #2a2a2e;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  font-weight: 600;
+  color: #fff;
+}
+.hud__title { font-weight: 600; }
+.hud__counter { color: #8e8e93; font-variant-numeric: tabular-nums; }
+
+/* Dot indicator at bottom — one dot per variant, active one filled. */
+.dots {
+  position: fixed;
+  bottom: max(env(safe-area-inset-bottom, 0px), 14px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 12px;
+  background: rgba(20, 20, 22, 0.72);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 999px;
+  pointer-events: none;
+  opacity: 0.92;
+  transition: opacity 240ms ease;
+}
+.dots--hidden { opacity: 0; }
+.dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: rgba(255,255,255,0.28);
+  transition: background 200ms ease, width 200ms ease;
+}
+.dot--active {
+  background: #f4f4f4;
+  width: 18px;
+  border-radius: 3px;
+}
+
 /* The original .iphone__screen has rounded corners (46px) — we don't
    want that on the showcase since the real phone has its own corners.
    Reset for elements inside .screen. */
@@ -2697,48 +2767,17 @@ body {
 </style>
 </head>
 <body>
+  <div class="hud" id="hud" aria-live="polite">
+    <span class="hud__badge" id="hudBadge">A</span>
+    <span class="hud__title" id="hudTitle">Original · Clean</span>
+    <span class="hud__counter" id="hudCounter">1 / 7</span>
+  </div>
+
   <main class="deck" id="deck">
     <!-- ══════ Variant A — Original · Clean ══════ -->
     <section class="slide" data-letter="A" data-title="Original · Clean">
       <div class="stage">
         <div class="screen">
-    background: linear-gradient(180deg, #8fc770 0%, #4c8a38 100%);
-    color: #1a2e10;
-    box-shadow:
-      inset 0 1px 0 rgba(255,255,255,0.38),
-      inset 0 -1px 0 rgba(0,0,0,0.22),
-      0 2px 5px rgba(76,138,56,0.42);
-  }
-
-</style>
-</head>
-<body>
-  <header class="page-head">
-    <h1>UI Design Variants</h1>
-    <p>Halaman ini menampilkan hasil unsolicited exploration interface Bibit menjadi multi-theme UI menggunakan pendekatan AI-assisted design, dimana AI membantu designer menentukan direction dan eksekusi visual. Proses ini adalah bagian dari tutorial <strong>Agentic UI Design Workflow</strong> oleh Halo Designers. Mau belajar caranya? <a href="https://t.me/channelhalodesigners" target="_blank" rel="noopener">Join disini</a>.</p>
-    <a class="page-head__cta" href="showcase.html">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2.5"/><line x1="12" y1="18" x2="12" y2="18"/></svg>
-      <span>Buka di HP — swipe demo</span>
-      <svg class="arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-    </a>
-    <div class="meta">Tool stack — Claude Code · VS Code · Paper · iPhone 16 Pro mockup (396×860)</div>
-  </header>
-
-  <main class="gallery">
-
-    <!-- ══════ VARIANT A — Original · Clean ══════ -->
-    <section class="variant">
-      <div class="variant__label">
-        <div class="badge">A</div>
-        <span class="title">Original · Clean</span>
-        <span class="meta">cards, donut allocation, list</span>
-      </div>
-      <div class="iphone">
-        <div class="iphone__buttons-left iphone__action"></div>
-        <div class="iphone__buttons-left iphone__volup"></div>
-        <div class="iphone__buttons-left iphone__voldown"></div>
-        <div class="iphone__buttons-right iphone__power"></div>
-        <div class="iphone__screen">
           <div class="di"></div>
           <div class="statusbar statusbar--dark">
             <div class="statusbar__time">9:41</div>
@@ -2839,13 +2878,23 @@ body {
                     <div class="clean__row-gain loss">-Rp7,523,118</div>
                     <div class="clean__row-pct loss">-1.64%</div>
                   </div>
-        </div>
-      </div>
-    </section>
-    <!-- ══════ Variant B — Ambient · Fern Fronds ══════ -->
-    <section class="slide" data-letter="B" data-title="Ambient · Fern Fronds">
-      <div class="stage">
-        <div class="screen">
+                </div>
+                <div class="clean__row">
+                  <div class="clean__row-icon" style="background:#e3eef9;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2479b4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L4 6v6c0 5 3.5 9 8 10 4.5-1 8-5 8-10V6l-8-4z"/></svg></div>
+                  <div class="clean__row-main">
+                    <div class="clean__row-title-line"><div class="clean__row-title">Pensiun 2045</div></div>
+                    <div class="clean__row-sub">3 Produk · Rp198,445,770</div>
+                  </div>
+                  <div class="clean__row-value">
+                    <div class="clean__row-gain gain">+Rp6,874,122</div>
+                    <div class="clean__row-pct gain">+3.59%</div>
+                  </div>
+                </div>
+                <div class="clean__row">
+                  <div class="clean__row-icon" style="background:#ebf8f3;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00ab6b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L4 6v6c0 5 3.5 9 8 10 4.5-1 8-5 8-10V6l-8-4z"/></svg></div>
+                  <div class="clean__row-main">
+                    <div class="clean__row-title-line">
+                      <div class="clean__row-title">Smart Balanced</div>
                       <div class="clean__robo-chip"><span class="dot"></span><span class="txt">ROBO</span></div>
                     </div>
                     <div class="clean__row-sub">6 Produk · Rp153,215,400</div>
@@ -2869,20 +2918,10 @@ body {
         </div>
       </div>
     </section>
-
-    <!-- ══════ VARIANT B — Ambient · Fern Fronds ══════ -->
-    <section class="variant">
-      <div class="variant__label">
-        <div class="badge">B</div>
-        <span class="title">Ambient · Fern Fronds</span>
-        <span class="meta">green photo bg, white-translucent glass cards</span>
-      </div>
-      <div class="iphone">
-        <div class="iphone__buttons-left iphone__action"></div>
-        <div class="iphone__buttons-left iphone__volup"></div>
-        <div class="iphone__buttons-left iphone__voldown"></div>
-        <div class="iphone__buttons-right iphone__power"></div>
-        <div class="iphone__screen" style="background:#030610;">
+    <!-- ══════ Variant B — Ambient · Fern Fronds ══════ -->
+    <section class="slide" data-letter="B" data-title="Ambient · Fern Fronds">
+      <div class="stage">
+        <div class="screen" style="background:#030610;">
           <div class="e9">
             <div class="e9__bg"></div>
             <div class="e9__bg-scrim"></div>
@@ -3046,13 +3085,23 @@ body {
                   <div class="e9__card-bigval">Rp198,445,770</div>
                   <div class="e9__card-bar"><div class="e9__card-bar-fill" style="width:10.7%;"></div></div>
                   <div class="e9__card-footer">
-        </div>
-      </div>
-    </section>
-    <!-- ══════ Variant C — Dark Skeuomorphism ══════ -->
-    <section class="slide" data-letter="C" data-title="Dark Skeuomorphism">
-      <div class="stage">
-        <div class="screen">
+                    <div class="e9__pl e9__pl--pos">+Rp6,874,122</div>
+                    <div class="e9__chip-muted"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg><span>10.7% Alokasi</span></div>
+                  </div>
+                </div>
+
+                <div class="e9__card">
+                  <div class="e9__card-name-row">
+                    <div class="e9__card-name"><span>Smart Balanced</span><span class="e9__robo-tag">ROBO</span></div>
+                    <div class="e9__card-num">05</div>
+                  </div>
+                  <div class="e9__card-stats">
+                    <div class="e9__card-stat"><span class="e9__card-stat-v e9__card-stat-v--neg">−0.79%</span></div>
+                    <div class="e9__card-stat-div"></div>
+                    <div class="e9__card-stat"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#a884ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="14" x2="6" y2="10"/><line x1="10" y1="18" x2="10" y2="6"/><line x1="14" y1="20" x2="14" y2="4"/><line x1="18" y1="17" x2="18" y2="7"/></svg><span>6 Produk</span></div>
+                  </div>
+                  <div class="e9__card-divider"></div>
+                  <div class="e9__card-label">Nilai Portofolio</div>
                   <div class="e9__card-bigval">Rp153,215,400</div>
                   <div class="e9__card-bar"><div class="e9__card-bar-fill" style="width:8.3%;"></div></div>
                   <div class="e9__card-footer">
@@ -3076,20 +3125,10 @@ body {
         </div>
       </div>
     </section>
-
-    <!-- ══════ VARIANT C — Dark Skeuomorphism ══════ -->
-    <section class="variant">
-      <div class="variant__label">
-        <div class="badge">C</div>
-        <span class="title">Dark Skeuomorphism</span>
-        <span class="meta">textured raised cards, donut allocation</span>
-      </div>
-      <div class="iphone">
-        <div class="iphone__buttons-left iphone__action"></div>
-        <div class="iphone__buttons-left iphone__volup"></div>
-        <div class="iphone__buttons-left iphone__voldown"></div>
-        <div class="iphone__buttons-right iphone__power"></div>
-        <div class="iphone__screen" style="background:#0a0a0a;">
+    <!-- ══════ Variant C — Dark Skeuomorphism ══════ -->
+    <section class="slide" data-letter="C" data-title="Dark Skeuomorphism">
+      <div class="stage">
+        <div class="screen" style="background:#0a0a0a;">
           <div class="di"></div>
           <div class="statusbar statusbar--light">
             <div class="statusbar__time">9:41</div>
@@ -3235,13 +3274,23 @@ body {
                   <div class="skeuo__group-title">Trading</div>
                   <div class="skeuo__group-total">Rp452,108,450</div>
                 </div>
-        </div>
-      </div>
-    </section>
-    <!-- ══════ Variant D — Ambient · Night Hill ══════ -->
-    <section class="slide" data-letter="D" data-title="Ambient · Night Hill">
-      <div class="stage">
-        <div class="screen">
+                <div class="skeuo__srow">
+                  <div class="skeuo__srow-marker"><div class="skeuo__loss-dot"></div></div>
+                  <div class="skeuo__srow-main">
+                    <div class="skeuo__srow-title">Saham Growth</div>
+                    <div class="skeuo__srow-sub">7 Produk</div>
+                  </div>
+                  <div class="skeuo__srow-value">
+                    <div class="skeuo__srow-value-num">Rp452,108,450</div>
+                    <div class="skeuo__srow-value-pct loss">-1.64%</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="skeuo__group">
+                <div class="skeuo__group-head">
+                  <span class="skeuo__chev"><svg width="10" height="10" viewBox="0 0 24 24" fill="#6c6c70"><polygon points="6 4 18 12 6 20"/></svg></span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6c6c70" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
                   <div class="skeuo__group-title">Robo</div>
                   <div class="skeuo__group-total">Rp153,215,400</div>
                 </div>
@@ -3265,20 +3314,10 @@ body {
         </div>
       </div>
     </section>
-
-    <!-- ══════ VARIANT D — Ambient · Night Hill ══════ -->
-    <section class="variant">
-      <div class="variant__label">
-        <div class="badge">D</div>
-        <span class="title">Ambient · Night Hill</span>
-        <span class="meta">paper photo bg, dark frosted cards</span>
-      </div>
-      <div class="iphone">
-        <div class="iphone__buttons-left iphone__action"></div>
-        <div class="iphone__buttons-left iphone__volup"></div>
-        <div class="iphone__buttons-left iphone__voldown"></div>
-        <div class="iphone__buttons-right iphone__power"></div>
-        <div class="iphone__screen" style="background:#030610;">
+    <!-- ══════ Variant D — Ambient · Night Hill ══════ -->
+    <section class="slide" data-letter="D" data-title="Ambient · Night Hill">
+      <div class="stage">
+        <div class="screen" style="background:#030610;">
           <div class="e8">
             <div class="e8__bg"></div>
             <div class="e8__bg-scrim"></div>
@@ -3442,13 +3481,23 @@ body {
                   <div class="e8__card-bigval">Rp198,445,770</div>
                   <div class="e8__card-bar"><div class="e8__card-bar-fill" style="width:10.7%;"></div></div>
                   <div class="e8__card-footer">
-        </div>
-      </div>
-    </section>
-    <!-- ══════ Variant E — Data Terminal ══════ -->
-    <section class="slide" data-letter="E" data-title="Data Terminal">
-      <div class="stage">
-        <div class="screen">
+                    <div class="e8__pl e8__pl--pos">+Rp6,874,122</div>
+                    <div class="e8__chip-muted"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg><span>10.7% Alokasi</span></div>
+                  </div>
+                </div>
+
+                <div class="e8__card">
+                  <div class="e8__card-name-row">
+                    <div class="e8__card-name"><span>Smart Balanced</span><span class="e8__robo-tag">ROBO</span></div>
+                    <div class="e8__card-num">05</div>
+                  </div>
+                  <div class="e8__card-stats">
+                    <div class="e8__card-stat"><span class="e8__card-stat-v e8__card-stat-v--neg">−0.79%</span></div>
+                    <div class="e8__card-stat-div"></div>
+                    <div class="e8__card-stat"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#a884ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="14" x2="6" y2="10"/><line x1="10" y1="18" x2="10" y2="6"/><line x1="14" y1="20" x2="14" y2="4"/><line x1="18" y1="17" x2="18" y2="7"/></svg><span>6 Produk</span></div>
+                  </div>
+                  <div class="e8__card-divider"></div>
+                  <div class="e8__card-label">Nilai Portofolio</div>
                   <div class="e8__card-bigval">Rp153,215,400</div>
                   <div class="e8__card-bar"><div class="e8__card-bar-fill" style="width:8.3%;"></div></div>
                   <div class="e8__card-footer">
@@ -3472,20 +3521,10 @@ body {
         </div>
       </div>
     </section>
-
-    <!-- ══════ VARIANT E — Dark Data Terminal ══════ -->
-    <section class="variant">
-      <div class="variant__label">
-        <div class="badge">E</div>
-        <span class="title">Data Terminal</span>
-        <span class="meta">vertical bars, monochrome, tactical</span>
-      </div>
-      <div class="iphone">
-        <div class="iphone__buttons-left iphone__action"></div>
-        <div class="iphone__buttons-left iphone__volup"></div>
-        <div class="iphone__buttons-left iphone__voldown"></div>
-        <div class="iphone__buttons-right iphone__power"></div>
-        <div class="iphone__screen" style="background:#0d0d0d;">
+    <!-- ══════ Variant E — Data Terminal ══════ -->
+    <section class="slide" data-letter="E" data-title="Data Terminal">
+      <div class="stage">
+        <div class="screen" style="background:#0d0d0d;">
           <div class="di"></div>
           <div class="statusbar statusbar--light">
             <div class="statusbar__time">9:41</div>
@@ -3634,13 +3673,24 @@ body {
                       <div class="terminal__trow-sub">3 Produk · Rp198,445,770</div>
                     </div>
                   </div>
-        </div>
-      </div>
-    </section>
-    <!-- ══════ Variant F — Expressive · Bento ══════ -->
-    <section class="slide" data-letter="F" data-title="Expressive · Bento">
-      <div class="stage">
-        <div class="screen">
+                  <div class="terminal__trow-val pos">
+                    <div class="terminal__trow-val-num">+Rp6,874,122</div>
+                    <div class="terminal__trow-val-pct">+3.59%</div>
+                  </div>
+                </div>
+                <div class="terminal__trow">
+                  <div class="terminal__trow-asset">
+                    <div class="terminal__trow-icon">R</div>
+                    <div class="terminal__trow-meta">
+                      <div class="terminal__trow-name">Smart Balanced</div>
+                      <div class="terminal__trow-sub">6 Produk · Rp153,215,400</div>
+                    </div>
+                  </div>
+                  <div class="terminal__trow-val neg">
+                    <div class="terminal__trow-val-num">−Rp1,224,387</div>
+                    <div class="terminal__trow-val-pct">−0.79%</div>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -3663,21 +3713,10 @@ body {
         </div>
       </div>
     </section>
-
-
-    <!-- ══════ VARIANT F — Expressive Bento ══════ -->
-    <section class="variant">
-      <div class="variant__label">
-        <div class="badge">F</div>
-        <span class="title">Expressive · Bento</span>
-        <span class="meta">Space Grotesk + DM Sans · modern geometric</span>
-      </div>
-      <div class="iphone">
-        <div class="iphone__buttons-left iphone__action"></div>
-        <div class="iphone__buttons-left iphone__volup"></div>
-        <div class="iphone__buttons-left iphone__voldown"></div>
-        <div class="iphone__buttons-right iphone__power"></div>
-        <div class="iphone__screen" style="background:#ffffff;">
+    <!-- ══════ Variant F — Expressive · Bento ══════ -->
+    <section class="slide" data-letter="F" data-title="Expressive · Bento">
+      <div class="stage">
+        <div class="screen" style="background:#ffffff;">
           <div class="bento">
             <div class="di"></div>
             <div class="statusbar statusbar--dark">
@@ -3834,13 +3873,23 @@ body {
                       <div class="bento__goal-pct bento__goal-pct--neg">−0.79%</div>
                       <div class="bento__goal-amt">−Rp1.2M</div>
                     </div>
-        </div>
-      </div>
-    </section>
-    <!-- ══════ Variant G — Skeumorphic Notepad ══════ -->
-    <section class="slide" data-letter="G" data-title="Skeumorphic Notepad">
-      <div class="stage">
-        <div class="screen">
+                  </div>
+                </div>
+
+                <div class="bento__cta-row">
+                  <button class="bento__cta bento__cta--dark">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    <span>Tujuan baru</span>
+                  </button>
+                  <button class="bento__cta bento__cta--light">
+                    <span>Lihat semua</span>
+                  </button>
+                </div>
+              </div>
+
+              <div style="height: 80px; flex-shrink: 0;"></div>
+            </div>
+
             <div class="bento__tabbar">
               <div class="bento__tab">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
@@ -3864,20 +3913,10 @@ body {
         </div>
       </div>
     </section>
-
-    <!-- ══════ VARIANT G — Skeuomorphic Notepad ══════ -->
-    <section class="variant">
-      <div class="variant__label">
-        <div class="badge">G</div>
-        <span class="title">Skeumorphic Notepad</span>
-        <span class="meta">legal pad, torn edge, bookmark tabs</span>
-      </div>
-      <div class="iphone">
-        <div class="iphone__buttons-left iphone__action"></div>
-        <div class="iphone__buttons-left iphone__volup"></div>
-        <div class="iphone__buttons-left iphone__voldown"></div>
-        <div class="iphone__buttons-right iphone__power"></div>
-        <div class="iphone__screen" style="background:#0f0a06;">
+    <!-- ══════ Variant G — Skeumorphic Notepad ══════ -->
+    <section class="slide" data-letter="G" data-title="Skeumorphic Notepad">
+      <div class="stage">
+        <div class="screen" style="background:#0f0a06;">
           <div class="di"></div>
           <div class="statusbar statusbar--light">
             <div class="statusbar__time">9:41</div>
@@ -3956,29 +3995,88 @@ body {
                 <div class="notepad__item-title">Smart Balanced</div>
                 <div class="notepad__item-pct notepad__item-pct--loss">−0.79%</div>
                 <div class="notepad__item-sub">6 produk · Rp 153,215,400</div>
+                <div class="notepad__item-amt">−Rp 1,224,387</div>
+              </div>
+
+            </div>
+
+            <!-- Bookmark tabs sticking out right edge -->
+            <div class="notepad__bookmarks">
+              <div class="notepad__bookmark notepad__bookmark--red">Invest</div>
+              <div class="notepad__bookmark notepad__bookmark--blue">Target</div>
+              <div class="notepad__bookmark notepad__bookmark--green">Aktif</div>
+            </div>
+
+            <!-- Sticky note -->
+            <div class="notepad__sticky"><div class="notepad__sticky-text"><span class="notepad__sticky-line">Untung</span><span class="notepad__sticky-line notepad__sticky-line--nowrap">+Rp62&nbsp;juta</span><span class="notepad__sticky-line">bulan ini!</span></div></div>
+
+            <!-- Bottom tabbar -->
+            <div class="notepad__tabbar">
+              <div class="notepad__tab">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h12a2 2 0 0 1 2 2v14l-4-2-4 2-4-2-2 2V6a2 2 0 0 1 2-2z"/><line x1="7" y1="8" x2="15" y2="8"/><line x1="7" y1="12" x2="15" y2="12"/><line x1="7" y1="16" x2="11" y2="16"/></svg>
+              </div>
+              <div class="notepad__tab">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5v14z"/><path d="M4 19.5V21h16"/></svg>
+              </div>
+              <div class="notepad__tab notepad__tab--primary">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              </div>
+              <div class="notepad__tab">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41L13.42 20.58a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7" y2="7"/></svg>
+              </div>
+              <div class="notepad__tab">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66L9.4 17.43a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+              </div>
+            </div>
+
+          </div>
+
+          <div class="home-indicator home-indicator--light"></div>
         </div>
       </div>
     </section>
   </main>
+
+  <div class="dots" id="dots">
+    <span class="dot dot--active" data-i="0"></span>
+    <span class="dot" data-i="1"></span>
+    <span class="dot" data-i="2"></span>
+    <span class="dot" data-i="3"></span>
+    <span class="dot" data-i="4"></span>
+    <span class="dot" data-i="5"></span>
+    <span class="dot" data-i="6"></span>
+  </div>
 
 <script>
 (function () {
   var DESIGN_W = 396;
   var DESIGN_H = 860;
 
-  var deck   = document.getElementById('deck');
-  var slides = Array.prototype.slice.call(deck.querySelectorAll('.slide'));
-  var total  = slides.length;
+  var deck     = document.getElementById('deck');
+  var hud      = document.getElementById('hud');
+  var hudBadge = document.getElementById('hudBadge');
+  var hudTitle = document.getElementById('hudTitle');
+  var hudCount = document.getElementById('hudCounter');
+  var dotsBox  = document.getElementById('dots');
+  var slides   = Array.prototype.slice.call(deck.querySelectorAll('.slide'));
+  var dots     = Array.prototype.slice.call(dotsBox.querySelectorAll('.dot'));
+  var total    = slides.length;
 
-  // Cover-fit: scale the 396×860 stage so it fills the viewport on
-  // both axes (overflow is clipped by .slide). Recomputed on resize
-  // and orientationchange so the URL bar collapse on mobile reflows.
+  // Scale every stage to fill the viewport. We scale to whichever axis
+  // is more constrained so the mockup fully covers the screen
+  // (cover-fit), with overflow hidden by the slide.
   function fit() {
     var vw = window.innerWidth;
     var vh = window.innerHeight;
-    var scale = Math.max(vw / DESIGN_W, vh / DESIGN_H);
-    var offsetX = (vw - DESIGN_W * scale) / 2;
-    var offsetY = (vh - DESIGN_H * scale) / 2;
+    var scaleW = vw / DESIGN_W;
+    var scaleH = vh / DESIGN_H;
+    // Cover: fill both axes — pick the LARGER scale.
+    var scale = Math.max(scaleW, scaleH);
+    // Center the scaled stage horizontally within the slide.
+    var scaledW = DESIGN_W * scale;
+    var scaledH = DESIGN_H * scale;
+    var offsetX = (vw - scaledW) / 2;
+    var offsetY = (vh - scaledH) / 2;
     document.querySelectorAll('.stage').forEach(function (st) {
       st.style.transform = 'translate(' + offsetX + 'px,' + offsetY + 'px) scale(' + scale + ')';
     });
@@ -3987,11 +4085,43 @@ body {
   window.addEventListener('resize', fit);
   window.addEventListener('orientationchange', fit);
 
-  // Keyboard arrows for desktop testing.
+  // Track active slide via scroll position; update HUD + dots.
   var current = 0;
-  deck.addEventListener('scroll', function () {
-    current = Math.max(0, Math.min(total - 1, Math.round(deck.scrollLeft / window.innerWidth)));
-  }, { passive: true });
+  function update() {
+    var w = window.innerWidth;
+    var i = Math.round(deck.scrollLeft / w);
+    if (i < 0) i = 0;
+    if (i > total - 1) i = total - 1;
+    if (i === current) return;
+    current = i;
+    var s = slides[i];
+    hudBadge.textContent = s.dataset.letter;
+    hudTitle.textContent = s.dataset.title;
+    hudCount.textContent = (i + 1) + ' / ' + total;
+    dots.forEach(function (d, di) {
+      d.classList.toggle('dot--active', di === i);
+    });
+  }
+  deck.addEventListener('scroll', update, { passive: true });
+
+  // Auto-fade HUD/dots a few seconds after the user stops swiping
+  // so the chrome doesn't distract from the mockup.
+  var hideTimer;
+  function showChrome() {
+    hud.classList.remove('hud--hidden');
+    dotsBox.classList.remove('dots--hidden');
+    clearTimeout(hideTimer);
+    hideTimer = setTimeout(function () {
+      hud.classList.add('hud--hidden');
+      dotsBox.classList.add('dots--hidden');
+    }, 2200);
+  }
+  deck.addEventListener('scroll', showChrome, { passive: true });
+  document.addEventListener('touchstart', showChrome, { passive: true });
+  document.addEventListener('click', showChrome);
+  showChrome();
+
+  // Keyboard arrows for desktop testing.
   window.addEventListener('keydown', function (e) {
     if (e.key === 'ArrowRight' && current < total - 1) {
       deck.scrollTo({ left: (current + 1) * window.innerWidth, behavior: 'smooth' });
