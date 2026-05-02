@@ -172,12 +172,128 @@ body {
 .screen .home-indicator {
   display: none;
 }
+
+/* ════════════════════════════════════════
+   INTRO OVERLAY — shown when the page is opened
+   in a regular browser tab. Explains how to get
+   true fullscreen (Add to Home Screen on iOS,
+   Fullscreen API on Android). Hidden in standalone
+   PWA mode.
+   ════════════════════════════════════════ */
+.intro {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(0,0,0,0.78);
+  backdrop-filter: blur(24px) saturate(140%);
+  -webkit-backdrop-filter: blur(24px) saturate(140%);
+  opacity: 1;
+  transition: opacity 280ms ease;
+}
+.intro[hidden] { display: none; }
+.intro--fading { opacity: 0; pointer-events: none; }
+.intro__card {
+  width: 100%;
+  max-width: 360px;
+  padding: 28px 24px 22px;
+  background: #16161a;
+  border: 1px solid #2a2a2e;
+  border-radius: 22px;
+  text-align: center;
+  box-shadow: 0 30px 80px rgba(0,0,0,0.55);
+  font-family: "Inter", sans-serif;
+}
+.intro__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px; height: 52px;
+  margin: 0 auto 16px;
+  background: #1f1f24;
+  border: 1px solid #2a2a2e;
+  border-radius: 14px;
+  color: #82b7ff;
+}
+.intro__title {
+  margin: 0 0 8px;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: #f4f4f4;
+}
+.intro__body {
+  margin: 0 0 22px;
+  font-size: 14px;
+  line-height: 21px;
+  color: #a8a8ac;
+}
+.intro__body strong { color: #e4e4e6; font-weight: 600; }
+.intro__body .kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px; height: 22px;
+  margin: 0 1px;
+  vertical-align: -5px;
+  background: #22222a;
+  border: 1px solid #34343a;
+  border-radius: 6px;
+  color: #c8c8cc;
+}
+.intro__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  height: 44px;
+  background: #f4f4f4;
+  color: #0a0a0c;
+  border: none;
+  border-radius: 12px;
+  font-family: inherit;
+  font-size: 14.5px;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  cursor: pointer;
+  transition: transform 120ms ease, background 160ms ease;
+}
+.intro__btn:hover { background: #ffffff; }
+.intro__btn:active { transform: scale(0.985); }
+.intro__btn--secondary {
+  margin-top: 8px;
+  background: transparent;
+  color: #8e8e93;
+  font-weight: 500;
+  font-size: 13px;
+  height: 36px;
+}
+.intro__btn--secondary:hover { color: #c8c8cc; background: transparent; }
 SHOWCASE_CSS
 
 cat <<'BODY_OPEN'
 </style>
 </head>
 <body>
+  <div class="intro" id="intro" hidden>
+    <div class="intro__card">
+      <div class="intro__icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="5" y="2" width="14" height="20" rx="2.5"/>
+          <line x1="12" y1="18" x2="12.01" y2="18"/>
+        </svg>
+      </div>
+      <h2 class="intro__title">Fullscreen demo</h2>
+      <p class="intro__body" id="introBody">Tap mulai untuk fullscreen.</p>
+      <button class="intro__btn" id="introStart" type="button">Mulai demo</button>
+      <button class="intro__btn intro__btn--secondary" id="introSkip" type="button" hidden>Lanjut tanpa fullscreen</button>
+    </div>
+  </div>
+
   <div class="hud" id="hud" aria-live="polite">
     <span class="hud__badge" id="hudBadge">A</span>
     <span class="hud__title" id="hudTitle">Original · Clean</span>
@@ -242,6 +358,61 @@ cat <<'BODY_CLOSE'
   var slides   = Array.prototype.slice.call(deck.querySelectorAll('.slide'));
   var dots     = Array.prototype.slice.call(dotsBox.querySelectorAll('.dot'));
   var total    = slides.length;
+
+  // Intro overlay — guide the user toward true fullscreen on first open.
+  // iPhone Safari can't enter fullscreen via the API, so for iOS the
+  // only path to a chrome-free demo is "Add to Home Screen" (PWA).
+  var intro      = document.getElementById('intro');
+  var introBody  = document.getElementById('introBody');
+  var introStart = document.getElementById('introStart');
+  var introSkip  = document.getElementById('introSkip');
+  var ua = navigator.userAgent || '';
+  var isIPhone    = /iPhone|iPod/.test(ua);
+  var isIPad      = /iPad/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
+  var isIOS       = isIPhone || isIPad;
+  var isStandalone = window.matchMedia('(display-mode: standalone)').matches
+                  || window.navigator.standalone === true;
+  var fsSupported = !!(document.documentElement.requestFullscreen
+                    || document.documentElement.webkitRequestFullscreen);
+
+  if (isStandalone) {
+    // Already running fullscreen as a PWA — skip the overlay entirely.
+    intro.hidden = true;
+  } else {
+    if (isIPhone) {
+      // No fullscreen API on iPhone Safari; teach Add to Home Screen.
+      introBody.innerHTML = 'Buat fullscreen tanpa URL bar Safari, tambahin ke Home Screen dulu: tap ikon <strong>Share</strong> di bawah <span class="kbd"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg></span> &nbsp;→&nbsp; <strong>Add to Home Screen</strong> &nbsp;→&nbsp; buka dari Home Screen.';
+      introStart.textContent = 'Mengerti';
+      introSkip.hidden = true;
+    } else if (isIPad) {
+      introBody.innerHTML = 'Tap <strong>Mulai</strong> untuk fullscreen. Atau Add to Home Screen buat pengalaman terbaik.';
+    } else if (fsSupported) {
+      introBody.innerHTML = 'Tap <strong>Mulai</strong> buat masuk mode fullscreen — URL bar bakal ilang.';
+    } else {
+      // Desktop or browser without FS API — just dismiss without fullscreen.
+      introBody.innerHTML = 'Swipe (atau panah kiri/kanan) buat pindah variant.';
+      introStart.textContent = 'Mulai';
+      introSkip.hidden = true;
+    }
+    intro.hidden = false;
+  }
+
+  function dismissIntro() {
+    intro.classList.add('intro--fading');
+    setTimeout(function () { intro.hidden = true; }, 320);
+  }
+  function tryFullscreen() {
+    var el = document.documentElement;
+    var req = el.requestFullscreen || el.webkitRequestFullscreen;
+    if (req) {
+      try { req.call(el).catch && req.call(el).catch(function () {}); } catch (e) {}
+    }
+  }
+  introStart && introStart.addEventListener('click', function () {
+    if (!isIPhone) tryFullscreen();
+    dismissIntro();
+  });
+  introSkip && introSkip.addEventListener('click', dismissIntro);
 
   // Scale every stage to fill the viewport. We scale to whichever axis
   // is more constrained so the mockup fully covers the screen
