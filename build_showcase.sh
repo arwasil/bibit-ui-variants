@@ -172,6 +172,10 @@ body {
 .screen .home-indicator {
   display: none;
 }
+
+/* Hide HUD chip + dot indicator — keep the elements + JS in place
+   for easy revert, just suppress the visuals. */
+.hud, .dots { display: none; }
 SHOWCASE_CSS
 
 cat <<'BODY_OPEN'
